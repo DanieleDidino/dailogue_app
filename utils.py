@@ -1,6 +1,6 @@
 import openai
 import re
-from prompts import create_prompt_split_clf, create_prompt_edit_text
+from prompts import create_prompt_split_clf, create_prompt_edit_text_output_mergedtext
 
 def test_label(label: str) -> bool:
     """
@@ -107,7 +107,7 @@ def get_responses_from_llm(user_text: str, api_client: openai.OpenAI, llm_model:
     _, _, total_token = token_usage
 
     # Edit the taxt into a more functinal format
-    prompt_edit_text = create_prompt_edit_text(clf_text)
+    prompt_edit_text = create_prompt_edit_text_output_mergedtext(clf_text)
     edited_text, token_usage = call_api_client(
         api_client= api_client,
         llm_model=llm_model,
