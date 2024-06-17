@@ -6,5 +6,4 @@ Thank you for your interest in our project. Please be aware that this is still a
 
 This project aims to develop tools that can detect dysfunctinal and toxic language in chat conversations and provide suggestions to make the language more respectful and inclusive.
 
-*MORE INFO COMING SOON*
-
+#### This branch includes the first version used on Heroku
