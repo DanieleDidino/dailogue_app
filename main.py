@@ -3,13 +3,25 @@ from openai import OpenAI
 from fastapi import FastAPI, HTTPException
 from typing import List
 from uuid import UUID
-from utils import get_responses_from_llm, return_category_sentence
-from models import TextModel, MessageUpdateRequest
+from pathlib import Path
+
+from utils.models import TextModel, MessageUpdateRequest
+from utils.call_llm import get_responses_from_llm
+from utils.prompts import create_dynamic_prompt
+
 
 app = FastAPI()
 
 LLM_MODEL  = "gpt-3.5-turbo" # OR "gpt-4"
 TEMPERATURE = 0 # LLM temperature
+EMB_MODEL = "text-embedding-3-small" # Embedding model
+
+# Path to embedding database
+FOLDER = "./data_synthetic" # folder wiht generated synthetic data
+PATH_EMB_DB = Path(FOLDER, "embeddings.db")
+
+# Number of example to use as few-shots in the prompt
+NUM_EXAMPLES_TO_SELECT = 5
 
 # OpenAI API key & client
 env = environ.Env()
@@ -29,34 +41,34 @@ async def get_messages():
     return messages
 
 
-# Classify and Transform text
+# Transform text
 @app.post("/api/messages/")
-async def clf_transform_message(text_model: TextModel):
+async def transform_message(text_model: TextModel):
     try:
-        clf_text, transformed_text, _ = get_responses_from_llm(
+        # Generate prompt
+        prompt = create_dynamic_prompt(
             user_text=text_model.original_text,
+            path_emb=PATH_EMB_DB,
+            emb_model=EMB_MODEL,
+            client=client,
+            num_examples=NUM_EXAMPLES_TO_SELECT)
+        text_model.prompt = prompt
+
+        # Generate tranformed text using LLM from OpenAI API
+        transformed_text, _ = get_responses_from_llm(
+            prompt=text_model.prompt,
             api_client=client,
             llm_model=LLM_MODEL,
             temperature=TEMPERATURE
         )
-
-        # Extract the sentences and the corresponding category from the original text
-        # (done using the output from OpenAI API)
-        sentences, categories = return_category_sentence(clf_text)
-
-        text_model.raw_output = clf_text
-        text_model.splitted_text = sentences
-        text_model.communication_style = categories
-        text_model.transformed_text = transformed_text # TODO: merge the text into a coherent paragraph
+        text_model.transformed_text = transformed_text
 
         messages.append(text_model)
 
         return {
             "id": text_model.id,
             "original_text": text_model.original_text,
-            "raw_output": text_model.raw_output,
-            "splitted_text": text_model.splitted_text,
-            "communication_style": text_model.communication_style,
+            "prompt": text_model.prompt,
             "transformed_text": text_model.transformed_text,
             }
     
@@ -84,12 +96,8 @@ async def update_message(message_update: MessageUpdateRequest, message_id: UUID)
         if message.id == message_id:
             if message_update.original_text is not None:
                 message.original_text = message_update.original_text
-            if message_update.raw_output is not None:
-                message.raw_output = message_update.raw_output
-            if message_update.splitted_text is not None:
-                message.splitted_text = message_update.splitted_text
-            if message_update.communication_style is not None:
-                message.communication_style = message_update.communication_style
+            if message_update.prompt is not None:
+                message.prompt = message_update.prompt
             if message_update.transformed_text is not None:
                 message.transformed_text = message_update.transformed_text
             return
