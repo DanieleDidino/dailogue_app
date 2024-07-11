@@ -1,20 +1,32 @@
-import environ
-from openai import OpenAI
+# import environ
+# from openai import OpenAI
 from fastapi import FastAPI, HTTPException
 from typing import List
 from uuid import UUID
 from pathlib import Path
 
+from utils.client import initialize_openai_client
+from utils.openai_config import OpenAIModels
 from utils.models import TextModel, MessageUpdateRequest
-from utils.call_llm import get_responses_from_llm
 from utils.prompts import create_dynamic_prompt
+from utils.request_handler import handle_request
 
 
 app = FastAPI()
 
-LLM_MODEL  = "gpt-3.5-turbo" # OR "gpt-4"
+# OpenAI API key & client
+#env = environ.Env()
+#environ.Env.read_env()
+#OPENAI_API_KEY = env("OPENAI_API_KEY")
+#client = OpenAI(api_key=OPENAI_API_KEY) # Initialize OpenAI client
+client = initialize_openai_client()
+
+# LLM_MODEL  = "gpt-3.5-turbo" # OR "gpt-4"
+# TEMPERATURE = 0 # LLM temperature
+# EMB_MODEL = "text-embedding-3-small" # Embedding model
+LLM_MODEL  = OpenAIModels.GPT3_TURBO
 TEMPERATURE = 0 # LLM temperature
-EMB_MODEL = "text-embedding-3-small" # Embedding model
+EMB_MODEL = OpenAIModels.TEXT_EMB_3_SMALL # Embedding model
 
 # Path to embedding database
 FOLDER = "./data_synthetic" # folder wiht generated synthetic data
@@ -23,12 +35,7 @@ PATH_EMB_DB = Path(FOLDER, "embeddings.db")
 # Number of example to use as few-shots in the prompt
 NUM_EXAMPLES_TO_SELECT = 5
 
-# OpenAI API key & client
-env = environ.Env()
-environ.Env.read_env()
-OPENAI_API_KEY = env("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY) # Initialize OpenAI client
-
+# Initializes "messages", i.e., an empty list used to store instances of TextModel
 messages: List[TextModel] = []
 
 @app.get("/")
@@ -42,7 +49,7 @@ async def get_messages():
 
 
 # Transform text
-@app.post("/api/messages/")
+@app.post("/api/messages/", response_model=TextModel)
 async def transform_message(text_model: TextModel):
     try:
         # Generate prompt
@@ -55,10 +62,10 @@ async def transform_message(text_model: TextModel):
         text_model.prompt = prompt
 
         # Generate tranformed text using LLM from OpenAI API
-        transformed_text, _ = get_responses_from_llm(
+        transformed_text, _ = handle_request(
             prompt=text_model.prompt,
-            api_client=client,
-            llm_model=LLM_MODEL,
+            client=client,
+            model=LLM_MODEL,
             temperature=TEMPERATURE
         )
         text_model.transformed_text = transformed_text
@@ -75,7 +82,6 @@ async def transform_message(text_model: TextModel):
     # If something goes wrong, return a 500 error and a message
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 @app.delete("/api/messages/{message_id}")

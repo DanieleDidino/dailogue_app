@@ -3,6 +3,8 @@ numpy==2.0.0
 # ollama==0.2.1
 openai==1.7.0
 pydantic==2.6.3
+pytest==8.2.2
+pytest-asyncio==0.23.7
 python-environ==0.4.54
 requests==2.31.0
 scikit-learn==1.5.1

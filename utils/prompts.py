@@ -1,22 +1,32 @@
+from openai import OpenAI
 import sqlite3
 from pathlib import Path
 import numpy as np
 import json
 from sklearn.metrics.pairwise import cosine_similarity
 
+from utils.openai_config import OpenAIModels
 
-def get_embedding(text: str, model:str, client) -> list:
+
+def get_embedding(text: str, model: OpenAIModels, client: OpenAI) -> list:
     """
     Generate embeddings for the input text using OpenAI's API.
 
-    Args:
-        text: Text to use to generated the vector embedding.
-        model: Name of the model for the embeddings.
-        client: A client for the OpenAI API.
+    Parameters:
+    --------
+    text: str
+        Text to use to generated the vector embedding.
+    model: OpenAIModels
+        Name of the model for the embeddings.
+    client: OpenAI
+        A client for the OpenAI API.
 
     Returns:
+    --------
+    list
         A list with the vector embedding.
     """
+
     response = client.embeddings.create(input = [text], model=model)
     return response.data[0].embedding
 
@@ -42,31 +52,38 @@ def load_examples(path: Path) -> list[dict]:
     return examples
 
 
-def find_closest(input_embedding:list, examples:list[dict], top_n:int=5) -> list[dict]:
+def find_closest(input_embedding: list, examples:list[dict], top_n:int=5) -> tuple:
     """
     Return top_n pairs of dysfunctional text and its functional version,
     based on the cosine similarity with the input_embedding, which is the
     embedding of the text from the user.
 
-     Args:
-        input_embedding: Embedding of the user's text.
-        examples: List with dictionaries containing dysfunctional text, the dysfunctinal text embedding, and the functional version.
-            It has this structure:
-                [
-                    {'id': 1,
-                    'dysfunctional': "A dysfucntional example",
-                    'embedding': array([ 0.03117449,  0.03328631, -0.00667486, ..., -0.01784991,]),
-                    'functional': "The functional version of the text"},
-                    {'id': 2,
-                    'dysfunctional': "A dysfucntional example",
-                    'embedding': array([ 0.05065854,  0.01244088, -0.04797346, ...,  0.00821188,]),
-                    'functional': "The functional version of the text"},
-                    ...
-                ]
-        top_n: number examples to select.
+     Parameters:
+     -----------
+    input_embedding: list
+        Embedding of the user's text.
+    examples: list[dict]
+        List with dictionaries containing dysfunctional text, the dysfunctinal text embedding, and the functional version.
+        It has this structure:
+            [
+                {'id': 1,
+                'dysfunctional': "A dysfucntional example",
+                'embedding': array([ 0.03117449,  0.03328631, -0.00667486, ..., -0.01784991,]),
+                'functional': "The functional version of the text"},
+                {'id': 2,
+                'dysfunctional': "A dysfucntional example",
+                'embedding': array([ 0.05065854,  0.01244088, -0.04797346, ...,  0.00821188,]),
+                'functional': "The functional version of the text"},
+                ...
+            ]
+    top_n: int
+        number examples to select.
 
     Returns:
-        selected_examples: A list with dictioraries wiht dysfuntional and functional examples.
+    -----------
+    tuple
+        selected_examples: list[dict]
+            A list with dictioraries wiht dysfuntional and functional examples.
             It has this structure:
                 [
                     {'dysfunctional': "A dysfucntional example",
@@ -75,15 +92,16 @@ def find_closest(input_embedding:list, examples:list[dict], top_n:int=5) -> list
                     'functional': "The functional version of the text"},
                     ...
                 ]
-        selected_similarities: A list with the cosine similarities of the selected dysfunctional examples.
-            It is calculated as the cosine similarity between the embeddings of user input and those of the
-            dysfunctional examples .
-            It has this structure:
-                [
-                    np.float64(0.6548426546546),
-                    np.float64(0.5864792914286),
-                    ...
-                ]
+        selected_similarities: list[np.float64]
+        A list with the cosine similarities of the selected dysfunctional examples.
+        It is calculated as the cosine similarity between the embeddings of user
+        input and those of the dysfunctional examples.
+        It has this structure:
+            [
+                np.float64(0.6548426546546),
+                np.float64(0.5864792914286),
+                ...
+            ]
     """
 
     example_embeddings = [example['embedding'] for example in examples]
@@ -97,26 +115,35 @@ def find_closest(input_embedding:list, examples:list[dict], top_n:int=5) -> list
     return selected_examples, selected_similarities
 
 
-def select_examples(input_text:str, path_emb:Path , emb_model:str, client, num_examples:int=5) -> tuple[list, list]:
+def select_examples(text: str, path_emb: Path , emb_model: OpenAIModels, client: OpenAI, num_examples: int=5) -> tuple[list, list]:
     """
     Select the most relevant few-shot examples based on cosine similarity.
 
-    Args:
-        data: Dataset with all the text to use to generated the vector embedding.
-        path_emb: Path to the .db file with the examples and their embeddings.
-        emb_model: Name of the model for the embeddings.
-        client: A client for the OpenAI API.
-        num_examples: number examples to select.
-
+    Parameters:
+    -----------
+    text: str
+        The text to use to generated the vector embedding.
+    path_emb: Path
+        The path to the .db file with the examples and their embeddings.
+    emb_model: OpenAIModels
+        Name of the model for the embeddings.
+    client: OpenAI
+        A client for the OpenAI API.
+    num_examples: int
+        Number examples to select.
 
     Returns:
-        dys_text: A list with the dysfuntional examples.
-        fun_text: A list with the funtional examples.
+    -----------
+    turple
+        dys_text: list
+            A list with the dysfuntional examples.
+        fun_text: list
+            A list with the funtional examples.
     """
 
     # Embed the user text
     input_embedding = get_embedding(
-        text=input_text,
+        text=text,
         model=emb_model,
         client=client)
     
@@ -129,19 +156,26 @@ def select_examples(input_text:str, path_emb:Path , emb_model:str, client, num_e
     return selected_examples
 
 
-def create_dynamic_prompt(user_text: str, path_emb:Path , emb_model:str, client, num_examples:int=5) -> str:
+def create_dynamic_prompt(user_text: str, path_emb: Path , emb_model: OpenAIModels, client: OpenAI, num_examples: int=5) -> str:
     """
     Return a prompt based on the user's text and the selected  examples to enter in the prompt as few-shots.
-
-     Args:
-        user_text: The user's text.
-        path_emb: Path to the .db file with the examples and their embeddings.
-        emb_model: Name of the model for the embeddings.
-        client: A client for the OpenAI API.
-        num_examples: number examples to select.
+    
+    Parameters:
+    -----------
+    user_text: str
+        The user's text.
+    path_emb: Path
+        The path to the .db file with the examples and their embeddings.
+    emb_model: OpenAIModels
+        Name of the model for the embeddings.
+    client: OpenAI
+        A client for the OpenAI API.
+    num_examples: int
+        number examples to select.
         
-
     Returns:
+    -----------
+    str
         A string for the dynamic few-shots prompting.
     """
 
@@ -158,7 +192,7 @@ def create_dynamic_prompt(user_text: str, path_emb:Path , emb_model:str, client,
     #       ...
     #   ]
     selected_examples = select_examples(
-        input_text=user_text,
+        text=user_text,
         path_emb=path_emb,
         emb_model=emb_model,
         client=client,
