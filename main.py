@@ -14,16 +14,10 @@ from utils.request_handler import handle_request
 
 app = FastAPI()
 
-# OpenAI API key & client
-#env = environ.Env()
-#environ.Env.read_env()
-#OPENAI_API_KEY = env("OPENAI_API_KEY")
-#client = OpenAI(api_key=OPENAI_API_KEY) # Initialize OpenAI client
+# Initialize OpenAI client
 client = initialize_openai_client()
 
-# LLM_MODEL  = "gpt-3.5-turbo" # OR "gpt-4"
-# TEMPERATURE = 0 # LLM temperature
-# EMB_MODEL = "text-embedding-3-small" # Embedding model
+# Get model names
 LLM_MODEL  = OpenAIModels.GPT3_TURBO
 TEMPERATURE = 0 # LLM temperature
 EMB_MODEL = OpenAIModels.TEXT_EMB_3_SMALL # Embedding model
@@ -40,7 +34,7 @@ messages: List[TextModel] = []
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to D-AI-logue API!"}
+    return {"message": "Welcome to Dailogy API"}
 
 
 @app.get("/api/messages/")
