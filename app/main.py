@@ -1,5 +1,3 @@
-# import environ
-# from openai import OpenAI
 from fastapi import FastAPI, HTTPException
 from typing import List
 from uuid import UUID
@@ -8,9 +6,8 @@ from pathlib import Path
 from utils.client import initialize_openai_client
 from utils.openai_config import OpenAIModels
 from utils.models import TextModel, MessageUpdateRequest
-from utils.prompts import create_dynamic_prompt
+from utils.prompts  import create_dynamic_prompt
 from utils.request_handler import handle_request
-
 
 app = FastAPI()
 
@@ -23,7 +20,7 @@ TEMPERATURE = 0 # LLM temperature
 EMB_MODEL = OpenAIModels.TEXT_EMB_3_SMALL # Embedding model
 
 # Path to embedding database
-FOLDER = "./data_synthetic" # folder wiht generated synthetic data
+FOLDER = "./app/data_synthetic" # folder wiht generated synthetic data
 PATH_EMB_DB = Path(FOLDER, "embeddings.db")
 
 # Number of example to use as few-shots in the prompt

@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 from uuid import UUID, uuid4
 
-from main import app, messages, TextModel
+from app.main import app, messages, TextModel
 
 
 @pytest.mark.asyncio

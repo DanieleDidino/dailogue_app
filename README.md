@@ -56,7 +56,7 @@ pip install -r requirements.txt
 #### 4. Run the API locally
    
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 Uvicorn should be running on `http://127.0.0.1:8000`

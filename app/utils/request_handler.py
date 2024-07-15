@@ -1,7 +1,6 @@
 from openai import OpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 
-from utils.prompts import create_dynamic_prompt
 from utils.openai_config import OpenAIModels
 from utils.rate_limiter import retry_with_exponential_backoff
 
@@ -104,7 +103,6 @@ def handle_request(prompt: str, client: OpenAI, model: OpenAIModels, temperature
             Total count of used tokens.
     """
 
-    # TODO: edit the funtion to call the API with the dynamic few-shot prompt
     transformed_text, token_usage = send_request(
         client= client,
         model=model,
