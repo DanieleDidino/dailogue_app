@@ -1,8 +1,8 @@
 from openai import OpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 
-from utils.openai_config import OpenAIModels
-from utils.rate_limiter import retry_with_exponential_backoff
+from app.utils.openai_config import OpenAIModels
+from app.utils.rate_limiter import retry_with_exponential_backoff
 
 
 def count_token_usage(api_response: ChatCompletion) -> tuple:

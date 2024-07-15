@@ -3,11 +3,11 @@ from typing import List
 from uuid import UUID
 from pathlib import Path
 
-from utils.client import initialize_openai_client
-from utils.openai_config import OpenAIModels
-from utils.models import TextModel, MessageUpdateRequest
-from utils.prompts  import create_dynamic_prompt
-from utils.request_handler import handle_request
+from app.utils.client import initialize_openai_client
+from app.utils.openai_config import OpenAIModels
+from app.utils.models import TextModel, MessageUpdateRequest
+from app.utils.prompts  import create_dynamic_prompt
+from app.utils.request_handler import handle_request
 
 app = FastAPI()
 

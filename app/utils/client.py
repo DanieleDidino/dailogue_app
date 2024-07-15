@@ -1,7 +1,7 @@
 import environ
 from openai import OpenAI
 
-from utils.config import OPENAI_API_KEY
+from app.utils.config import OPENAI_API_KEY
 
 
 def initialize_openai_client():

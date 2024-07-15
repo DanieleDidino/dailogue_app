@@ -5,7 +5,7 @@ import numpy as np
 import json
 from sklearn.metrics.pairwise import cosine_similarity
 
-from utils.openai_config import OpenAIModels
+from app.utils.openai_config import OpenAIModels
 
 
 def get_embedding(text: str, model: OpenAIModels, client: OpenAI) -> list:
