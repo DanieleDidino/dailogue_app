@@ -15,7 +15,7 @@ app = FastAPI()
 client = initialize_openai_client()
 
 # Get model names
-LLM_MODEL = OpenAIModels.GPT4o_MINI # OpenAIModels.GPT3_TURBO
+LLM_MODEL = OpenAIModels.GPT4o_MINI  # OpenAIModels.GPT3_TURBO
 
 TEMPERATURE = 0 # LLM temperature
 EMB_MODEL = OpenAIModels.TEXT_EMB_3_SMALL # Embedding model
