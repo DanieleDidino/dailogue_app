@@ -4,7 +4,7 @@
 
 Thank you for your interest in our project. Please note that this is still a prototype and may contain bugs or unfinished features.
 
-This repository is part of Dailogy, a project aimed at developing tools to detect dysfunctional and toxic language in chat conversations and provide suggestions to make the language more respectful and inclusive.
+This project aimed at developing tools to detect dysfunctional and toxic language in chat conversations and provide suggestions to make the language more respectful and inclusive.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ Our goal is to develop tools for detecting and mitigating such language, thereby
 
 ## Large Language Models
 
-To transform text into functional and respectful language, we employ `gpt-3.5-turbo`, a Large Language Model (LLM) accessed through the OpenAI API.
+To transform text into functional and respectful language, we employ `gpt-4o-mini`, a Large Language Model (LLM) accessed through the OpenAI API.
 
 ## App Architecture
 
